@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Tab</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e6ecf5, #f8fafc);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 顶部 */
+.top-section {
+    width: 100%;
+    padding-top: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 搜索框 */
+.search-box {
+    width: 650px;
+    max-width: 90%;
+    padding: 18px 25px;
+    border-radius: 40px;
+    backdrop-filter: blur(15px);
+    background: rgba(255,255,255,0.7);
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+}
+
+.search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    background: transparent;
+}
+
+.search-box select {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    margin-left: 15px;
+    outline: none;
+    color: #555;
+}
+
+/* 网站栏 */
+.links-wrapper {
+    margin-top: 40px;
+    width: 90%;
+    max-width: 1100px;
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+/* 网站卡片 */
+.link-card {
+    min-width: 140px;
+    height: 90px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #333;
+    transition: 0.2s ease;
+}
+
+.link-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.link-icon img {
+    width: 32px;
+    height: 32px;
+}
+
+.link-title {
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+/* 添加按钮 */
+.add-card {
+    cursor: pointer;
+    font-size: 26px;
+    font-weight: 300;
+}
+
+/* 预留区域 */
+.content-area {
+    margin-top: 60px;
+    width: 90%;
+    max-width: 1200px;
+    flex: 1;
+    border-radius: 25px;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(10px);
+    padding: 30px;
+    color: #666;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-section">
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜索或输入网址">
+        <select id="engine">
+            <option value="https://www.google.com/search?q=">Google</option>
+            <option value="https://www.baidu.com/s?wd=">百度</option>
+            <option value="https://www.bing.com/search?q=">Bing</option>
+        </select>
+    </div>
+
+    <div class="links-wrapper" id="links"></div>
+
+</div>
+
+<div class="content-area">
+    这里是预留区域
+</div>
+
+<script>
+const defaultLinks = [
+    { name: "GitHub", url: "https://github.com" },
+    { name: "Bilibili", url: "https://bilibili.com" },
+    { name: "天鳳 ", url: "https://tenhou.net/3/" },
+    { name: "云雾 API", url: "https://yunwu.ai/console/personal" }
+];
+
+let savedLinks = JSON.parse(localStorage.getItem("edgeFaviconLinks")) || defaultLinks;
+const container = document.getElementById("links");
+
+function getFavicon(url) {
+    try {
+        const domain = new URL(url).hostname;
+        return `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+    } catch {
+        return "";
+    }
+}
+
+function render() {
+    container.innerHTML = "";
+
+    savedLinks.forEach(link => {
+        const a = document.createElement("a");
+        a.href = link.url;
+        a.target = "_blank";
+        a.className = "link-card";
+
+        a.innerHTML = `
+            <div class="link-icon">
+                <img src="${getFavicon(link.url)}" alt="">
+            </div>
+            <div class="link-title">${link.name}</div>
+        `;
+
+        container.appendChild(a);
+    });
+
+    const add = document.createElement("div");
+    add.className = "link-card add-card";
+    add.innerHTML = "+";
+    add.onclick = addLink;
+    container.appendChild(add);
+}
+
+function addLink() {
+    const name = prompt("网站名称:");
+    const url = prompt("网站地址 (https://...)");
+
+    if (name && url) {
+        savedLinks.push({ name, url });
+        localStorage.setItem("edgeFaviconLinks", JSON.stringify(savedLinks));
+        render();
+    }
+}
+
+function search() {
+    const input = document.getElementById("searchInput").value;
+    const engine = document.getElementById("engine").value;
+
+    if (!input) return;
+
+    if (input.startsWith("http")) {
+        window.open(input, "_blank");
+    } else {
+        window.open(engine + encodeURIComponent(input), "_blank");
+    }
+}
+
+document.getElementById("searchInput")
+.addEventListener("keypress", e => {
+    if (e.key === "Enter") search();
+});
+
+render();
+</script>
+
+</body>
+</html>
